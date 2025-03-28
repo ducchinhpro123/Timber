@@ -25,7 +25,7 @@ void update_branches(int seed)
     }
 
     srand((int)time(0) + seed);
-    int r = rand() % 6;
+    int r = rand() % 5;
     switch (r) {
     case 0:
         branch_positions[0] = side::LEFT;
@@ -82,6 +82,7 @@ int main()
 
     Text message_text;
     Text score_text;
+    Text fps_text;
 
     message_text.setString("Press enter to start!");
     message_text.setCharacterSize(75);
@@ -89,6 +90,11 @@ int main()
     message_text.setFont(font);
 
     adjust_local_bounds(message_text);
+
+    fps_text.setString("FPS: 0");
+    fps_text.setFont(font);
+    fps_text.setPosition(20, 120);
+    fps_text.setCharacterSize(30);
 
     score_text.setFont(font);
     score_text.setString("Score: 0");
@@ -236,17 +242,35 @@ int main()
     int dead_frame = 0;
 
     // float frame_time_melee = 0.05f;
-    float melee_frame_time = 0.02f;
+    float melee_frame_time = 0.01f;
     float melee_time_since_last_frame = 0.0f;
     int melee_frame = 0;
 
     bool game_over = false;
     bool is_attacking = false;
 
+    float frame_count = 0;
+    float fps_update_time = 0;
+    float fps_update_interval = 0.1;
+    window.setFramerateLimit(60);
+
     while (window.isOpen()) {
         Event event;
         Time dt = clock.restart();
+
         if (!paused) {
+
+            frame_count++;
+            fps_update_time += dt.asSeconds();
+            if (fps_update_time >= fps_update_interval) {
+                std::stringstream ss;
+                float fps = frame_count / fps_update_time;
+                ss << "FPS: " << static_cast<int>(fps);
+                fps_text.setString(ss.str());
+                fps_update_time = 0;
+                frame_count = 0;
+            }
+
             if (!game_over && is_attacking) {
                 melee_time_since_last_frame += dt.asSeconds();
                 if (melee_time_since_last_frame >= melee_frame_time) {
@@ -505,6 +529,7 @@ int main()
         }
         window.draw(time_bar);
         window.draw(score_text);
+        window.draw(fps_text);
         window.display();
     }
 
